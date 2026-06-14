@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StockSage AI</title>
+    <style>
+        :root {
+            --bg: #0f1117;
+            --panel: #151824;
+            --panel-strong: #1a1e2c;
+            --accent: #6c63ff;
+            --accent-soft: rgba(108, 99, 255, 0.16);
+            --text: #ffffff;
+            --muted: #aeb6c8;
+            --line: rgba(255, 255, 255, 0.1);
+            --green: #22c55e;
+            --red: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            overflow-x: hidden;
+            background:
+                radial-gradient(circle at 18% 5%, rgba(108, 99, 255, 0.22), transparent 34%),
+                radial-gradient(circle at 88% 18%, rgba(108, 99, 255, 0.12), transparent 28%),
+                var(--bg);
+            color: var(--text);
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(15, 17, 23, 0.72);
+            backdrop-filter: blur(18px);
+        }
+
+        .nav-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+            width: min(1180px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 18px 0;
+        }
+
+        .logo {
+            color: var(--text);
+            font-size: 1.22rem;
+            font-weight: 900;
+            letter-spacing: 0.01em;
+        }
+
+        .nav-right,
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .nav-links a {
+            color: var(--muted);
+            font-size: 0.94rem;
+            font-weight: 700;
+            transition: color 180ms ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--text);
+        }
+
+        .nav-cta,
+        .primary-cta,
+        .demo-cta {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 44px;
+            padding: 0 18px;
+            border-radius: 999px;
+            background: var(--accent);
+            color: var(--text);
+            font-size: 0.94rem;
+            font-weight: 850;
+            box-shadow: 0 16px 44px rgba(108, 99, 255, 0.3);
+            transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
+        }
+
+        .nav-cta:hover,
+        .primary-cta:hover,
+        .demo-cta:hover {
+            transform: translateY(-2px);
+            background: #7c75ff;
+            box-shadow: 0 22px 60px rgba(108, 99, 255, 0.38);
+        }
+
+        .ticker-strip {
+            overflow: hidden;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            background: #141722;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+        }
+
+        .ticker-track {
+            display: flex;
+            width: max-content;
+            animation: ticker 34s linear infinite;
+        }
+
+        .ticker-group {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            padding: 10px 18px;
+            white-space: nowrap;
+        }
+
+        .ticker-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            color: #d8deea;
+            font-size: 0.8rem;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+        }
+
+        .ticker-price {
+            color: var(--muted);
+            font-weight: 650;
+        }
+
+        .up {
+            color: var(--green);
+        }
+
+        .down {
+            color: var(--red);
+        }
+
+        @keyframes ticker {
+            from {
+                transform: translateX(0);
+            }
+            to {
+                transform: translateX(-50%);
+            }
+        }
+
+        .section {
+            width: min(1180px, calc(100% - 32px));
+            margin: 0 auto;
+        }
+
+        .hero {
+            position: relative;
+            display: grid;
+            min-height: 720px;
+            align-items: center;
+            justify-items: center;
+            padding: 82px 0 72px;
+            text-align: center;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 950px;
+        }
+
+        h1,
+        h2,
+        h3,
+        p {
+            margin-top: 0;
+        }
+
+        .hero h1 {
+            margin-bottom: 0;
+            color: var(--text);
+            font-size: clamp(80px, 12vw, 160px);
+            font-weight: 800;
+            letter-spacing: -2px;
+            line-height: 1;
+            text-shadow: 0 0 80px rgba(108, 99, 255, 0.8), 0 0 160px rgba(108, 99, 255, 0.4), 0 0 240px rgba(108, 99, 255, 0.2);
+        }
+
+        .hero-subtitle {
+            margin: 16px 0 0;
+            color: #8b90a7;
+            font-size: clamp(18px, 2vw, 24px);
+            font-weight: 400;
+            line-height: 1.35;
+        }
+
+        .hero-subtext {
+            max-width: 720px;
+            margin: 22px auto 34px;
+            color: var(--muted);
+            font-size: clamp(1.06rem, 2.2vw, 1.32rem);
+            line-height: 1.65;
+        }
+
+        .hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            justify-content: center;
+            margin-bottom: 0;
+        }
+
+        .primary-cta,
+        .secondary-cta {
+            min-height: 54px;
+            padding: 0 24px;
+            font-size: 1rem;
+        }
+
+        .secondary-cta {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            border-radius: 999px;
+            color: var(--text);
+            font-weight: 850;
+            transition: border-color 180ms ease, background 180ms ease, transform 180ms ease;
+        }
+
+        .secondary-cta:hover {
+            transform: translateY(-2px);
+            border-color: rgba(108, 99, 255, 0.75);
+            background: rgba(108, 99, 255, 0.09);
+        }
+
+        .stats-strip {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            margin-bottom: 106px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 18px;
+            background: rgba(21, 24, 36, 0.72);
+            backdrop-filter: blur(14px);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.24);
+        }
+
+        .stat {
+            padding: 30px;
+        }
+
+        .stat + .stat {
+            border-left: 1px solid var(--line);
+        }
+
+        .stat strong {
+            display: block;
+            margin-bottom: 8px;
+            font-size: clamp(1.4rem, 3vw, 2.15rem);
+            line-height: 1.1;
+        }
+
+        .stat span {
+            color: var(--muted);
+            font-size: 0.96rem;
+            font-weight: 650;
+        }
+
+        .value-props {
+            padding-bottom: 110px;
+        }
+
+        .section-heading {
+            max-width: 760px;
+            margin-bottom: 34px;
+            font-size: clamp(2rem, 5vw, 4rem);
+            line-height: 1.02;
+            letter-spacing: -0.04em;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+        }
+
+        .card {
+            min-height: 290px;
+            padding: 28px;
+            border: 1px solid rgba(108, 99, 255, 0.28);
+            border-radius: 18px;
+            background:
+                linear-gradient(180deg, rgba(108, 99, 255, 0.08), transparent 46%),
+                rgba(21, 24, 36, 0.78);
+            transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+        }
+
+        .card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(108, 99, 255, 0.62);
+            box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
+        }
+
+        .card-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 52px;
+            height: 52px;
+            margin-bottom: 32px;
+            border-radius: 16px;
+            background: var(--accent-soft);
+            font-size: 1.55rem;
+        }
+
+        .card h3 {
+            margin-bottom: 12px;
+            font-size: 1.3rem;
+        }
+
+        .card p {
+            margin-bottom: 0;
+            color: var(--muted);
+            line-height: 1.65;
+        }
+
+        .demo {
+            padding-bottom: 108px;
+        }
+
+        .demo-header {
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            gap: 24px;
+            margin-bottom: 30px;
+        }
+
+        .demo-header .section-heading {
+            margin-bottom: 0;
+        }
+
+        .chat-window {
+            overflow: hidden;
+            border: 1px solid rgba(108, 99, 255, 0.28);
+            border-radius: 24px;
+            background: rgba(18, 21, 32, 0.9);
+            box-shadow: 0 36px 100px rgba(0, 0, 0, 0.36);
+        }
+
+        .chat-topbar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.28);
+        }
+
+        .chat-body {
+            display: grid;
+            gap: 22px;
+            padding: 24px;
+        }
+
+        .message {
+            max-width: 78%;
+            padding: 16px 18px;
+            border-radius: 18px;
+            line-height: 1.55;
+        }
+
+        .user-message {
+            justify-self: end;
+            background: var(--accent);
+            font-weight: 750;
+        }
+
+        .ai-message {
+            justify-self: start;
+            width: min(720px, 100%);
+            max-width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: var(--panel-strong);
+        }
+
+        .stock-card {
+            display: grid;
+            gap: 18px;
+        }
+
+        .stock-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .stock-card h3 {
+            margin-bottom: 4px;
+            font-size: 1.35rem;
+        }
+
+        .price-range {
+            margin: 0;
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
+        .verdict {
+            display: inline-flex;
+            align-items: center;
+            min-height: 36px;
+            padding: 0 14px;
+            border: 1px solid rgba(34, 197, 94, 0.36);
+            border-radius: 999px;
+            background: rgba(34, 197, 94, 0.12);
+            color: var(--green);
+            font-size: 0.85rem;
+            font-weight: 950;
+            letter-spacing: 0.08em;
+        }
+
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .analysis-box {
+            padding: 18px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.035);
+        }
+
+        .analysis-box h4 {
+            margin: 0 0 12px;
+            font-size: 0.96rem;
+        }
+
+        .analysis-box ul {
+            display: grid;
+            gap: 9px;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            color: var(--muted);
+            font-size: 0.94rem;
+        }
+
+        .analysis-box li {
+            display: flex;
+            gap: 9px;
+        }
+
+        .positive li::before {
+            color: var(--green);
+            content: "+";
+            font-weight: 950;
+        }
+
+        .negative li::before {
+            color: var(--red);
+            content: "-";
+            font-weight: 950;
+        }
+
+        .demo-footer {
+            margin-top: 24px;
+            text-align: center;
+        }
+
+        .footer {
+            padding: 30px 16px 38px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--muted);
+            text-align: center;
+            font-size: 0.92rem;
+        }
+
+        @media (max-width: 880px) {
+            .nav-inner,
+            .nav-right,
+            .nav-links {
+                align-items: flex-start;
+            }
+
+            .nav-inner {
+                flex-direction: column;
+            }
+
+            .nav-right {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .nav-links {
+                flex-wrap: wrap;
+                gap: 16px;
+            }
+
+            .hero {
+                min-height: auto;
+                padding-top: 66px;
+            }
+
+            .stats-strip,
+            .cards,
+            .analysis-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stat + .stat {
+                border-top: 1px solid var(--line);
+                border-left: 0;
+            }
+
+            .demo-header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+        }
+
+        @media (max-width: 560px) {
+            .nav-right {
+                gap: 18px;
+            }
+
+            .nav-cta {
+                width: 100%;
+            }
+
+            .primary-cta,
+            .secondary-cta {
+                width: 100%;
+            }
+
+            .message {
+                max-width: 100%;
+            }
+
+            .stock-card-header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="navbar">
+        <div class="nav-inner">
+            <a class="logo" href="/">StockSage AI</a>
+            <div class="nav-right">
+                <nav class="nav-links" aria-label="Primary navigation">
+                    <a href="/chat">Research</a>
+                    <a href="/budget">Budget Planner</a>
+                    <a href="/news">News</a>
+                </nav>
+                <a class="nav-cta" href="/chat">Try for free</a>
+            </div>
+        </div>
+    </header>
+
+    <section class="ticker-strip" aria-label="Market ticker">
+        <div class="ticker-track">
+            <div class="ticker-group">
+                <span class="ticker-item">RELIANCE <span class="ticker-price">₹2,948</span> <span class="up">+1.2%</span></span>
+                <span class="ticker-item">INFY <span class="ticker-price">₹1,518</span> <span class="down">-0.4%</span></span>
+                <span class="ticker-item">AAPL <span class="ticker-price">$214.39</span> <span class="up">+0.8%</span></span>
+                <span class="ticker-item">TSLA <span class="ticker-price">$184.72</span> <span class="down">-1.1%</span></span>
+                <span class="ticker-item">HDFC <span class="ticker-price">₹1,642</span> <span class="up">+0.6%</span></span>
+                <span class="ticker-item">NVDA <span class="ticker-price">$128.91</span> <span class="up">+2.3%</span></span>
+                <span class="ticker-item">TCS <span class="ticker-price">₹3,886</span> <span class="up">+0.3%</span></span>
+                <span class="ticker-item">MSFT <span class="ticker-price">$441.18</span> <span class="up">+0.5%</span></span>
+                <span class="ticker-item">TATAMOTORS <span class="ticker-price">₹961</span> <span class="down">-0.7%</span></span>
+                <span class="ticker-item">GOOGL <span class="ticker-price">$176.84</span> <span class="up">+1.4%</span></span>
+            </div>
+            <div class="ticker-group" aria-hidden="true">
+                <span class="ticker-item">RELIANCE <span class="ticker-price">₹2,948</span> <span class="up">+1.2%</span></span>
+                <span class="ticker-item">INFY <span class="ticker-price">₹1,518</span> <span class="down">-0.4%</span></span>
+                <span class="ticker-item">AAPL <span class="ticker-price">$214.39</span> <span class="up">+0.8%</span></span>
+                <span class="ticker-item">TSLA <span class="ticker-price">$184.72</span> <span class="down">-1.1%</span></span>
+                <span class="ticker-item">HDFC <span class="ticker-price">₹1,642</span> <span class="up">+0.6%</span></span>
+                <span class="ticker-item">NVDA <span class="ticker-price">$128.91</span> <span class="up">+2.3%</span></span>
+                <span class="ticker-item">TCS <span class="ticker-price">₹3,886</span> <span class="up">+0.3%</span></span>
+                <span class="ticker-item">MSFT <span class="ticker-price">$441.18</span> <span class="up">+0.5%</span></span>
+                <span class="ticker-item">TATAMOTORS <span class="ticker-price">₹961</span> <span class="down">-0.7%</span></span>
+                <span class="ticker-item">GOOGL <span class="ticker-price">$176.84</span> <span class="up">+1.4%</span></span>
+            </div>
+        </div>
+    </section>
+
+    <main>
+        <section class="section hero">
+            <div class="hero-content">
+                <h1>STOCKSAGE</h1>
+                <p class="hero-subtitle">Smarter investing starts here.</p>
+                <p class="hero-subtext">StockSage AI analyses any stock, builds your portfolio, and answers every question — so you stop guessing and start growing.</p>
+                <div class="hero-actions">
+                    <a class="primary-cta" href="/chat">Analyse your first stock →</a>
+                    <a class="secondary-cta" href="/chat">See how it works</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="section stats-strip" aria-label="StockSage AI statistics">
+            <div class="stat">
+                <strong>10,000+ Stocks Covered</strong>
+                <span>Indian and US markets</span>
+            </div>
+            <div class="stat">
+                <strong>3 sec Average Analysis Time</strong>
+                <span>powered by AI</span>
+            </div>
+            <div class="stat">
+                <strong>100% Free to Start</strong>
+                <span>no credit card needed</span>
+            </div>
+        </section>
+
+        <section class="section value-props">
+            <h2 class="section-heading">Everything you need to invest smarter</h2>
+            <div class="cards">
+                <article class="card">
+                    <div class="card-icon" aria-hidden="true">📊</div>
+                    <h3>Stock Research</h3>
+                    <p>Type any stock. Get fundamentals, risks, and a clear buy/hold/wait verdict in seconds.</p>
+                </article>
+                <article class="card">
+                    <div class="card-icon" aria-hidden="true">💼</div>
+                    <h3>Budget Planner</h3>
+                    <p>Tell us what you have. We'll show you exactly how to allocate it across sectors and stocks.</p>
+                </article>
+                <article class="card">
+                    <div class="card-icon" aria-hidden="true">📰</div>
+                    <h3>Market News</h3>
+                    <p>Curated news with AI sentiment analysis. Know what's moving the market before it moves you.</p>
+                </article>
+            </div>
+        </section>
+
+        <section class="section demo" id="demo">
+            <div class="demo-header">
+                <h2 class="section-heading">See StockSage in action</h2>
+            </div>
+            <div class="chat-window" aria-label="StockSage AI chat demo">
+                <div class="chat-topbar" aria-hidden="true">
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                </div>
+                <div class="chat-body">
+                    <div class="message user-message">Analyse Reliance Industries for me</div>
+                    <div class="message ai-message">
+                        <div class="stock-card">
+                            <div class="stock-card-header">
+                                <div>
+                                    <h3>Reliance Industries Ltd.</h3>
+                                    <p class="price-range">Indicative range: ₹2,880 - ₹3,040</p>
+                                </div>
+                                <span class="verdict">BUY</span>
+                            </div>
+                            <div class="analysis-grid">
+                                <div class="analysis-box positive">
+                                    <h4 class="up">Pros</h4>
+                                    <ul>
+                                        <li>Diversified energy, retail, and telecom engine</li>
+                                        <li>Strong cash generation and market leadership</li>
+                                        <li>Digital growth through Jio ecosystem expansion</li>
+                                    </ul>
+                                </div>
+                                <div class="analysis-box negative">
+                                    <h4 class="down">Risks</h4>
+                                    <ul>
+                                        <li>Energy margins remain sensitive to crude cycles</li>
+                                        <li>High capital expenditure can pressure returns</li>
+                                        <li>Regulatory shifts may affect telecom pricing</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="demo-footer">
+                <a class="demo-cta" href="/chat">Try it yourself →</a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">© 2025 StockSage AI — Not financial advice. For informational purposes only.</footer>
+</body>
+</html>

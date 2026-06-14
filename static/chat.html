@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StockSage AI - Research</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0f1117;color:#f0f2ff;font-family:'Inter',system-ui,sans-serif;height:100vh;overflow:hidden}
+.topbar{position:fixed;top:0;left:0;right:0;height:52px;background:#1a1d27;border-bottom:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:space-between;padding:0 24px;z-index:100}
+.topbar-logo{font-size:16px;font-weight:700;color:white}
+.topbar-tag{font-size:12px;color:#5a5f75}
+.bottomnav{position:fixed;bottom:0;left:0;right:0;height:60px;background:#1a1d27;border-top:1px solid rgba(255,255,255,0.08);display:flex;z-index:100}
+.bottomnav a{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:12px;color:#5a5f75;text-decoration:none;transition:color .15s}
+.bottomnav a.active,.bottomnav a:hover{color:#6c63ff}
+.bottomnav .icon{font-size:16px;line-height:1}
+.main{position:fixed;top:52px;bottom:60px;left:0;right:0;display:flex}
+.sidebar{width:260px;height:100%;background:#0f1117;border-right:1px solid rgba(255,255,255,0.06);overflow-y:auto;padding:28px 16px;flex-shrink:0}
+.sidebar-label{display:block;margin-bottom:16px;color:#6c63ff;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase}
+.stock-btn{width:100%;margin-bottom:8px;padding:12px 14px;border:1px solid rgba(255,255,255,0.06);border-radius:12px;background:#1a1d27;cursor:pointer;text-align:left;transition:all .15s}
+.stock-btn:hover{border-color:rgba(108,99,255,0.3);background:rgba(108,99,255,0.08)}
+.stock-btn .sname{display:block;color:#c8cad4;font-size:13px;font-weight:600}
+.stock-btn .sexch{display:block;margin-top:2px;color:#5a5f75;font-size:11px}
+.stock-btn:hover .sname{color:white}
+.sidebar-divider{margin:20px 0;border-top:1px solid rgba(255,255,255,0.05)}
+.chat-area{display:flex;flex:1;min-width:0;flex-direction:column;overflow:hidden;background:#0f1117}
+.chat-header{padding:24px 32px 0}
+.chat-eyebrow{color:#6c63ff;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase}
+.chat-heading{margin-top:6px;color:white;font-size:28px;font-weight:800;letter-spacing:-.5px}
+.chat-subtext{margin-top:4px;margin-bottom:20px;color:#5a5f75;font-size:14px}
+.messages{display:flex;flex:1;flex-direction:column;gap:16px;overflow-y:auto;padding:0 32px 16px}
+.msg-row{display:flex;gap:12px;align-items:flex-start}
+.msg-row.user{flex-direction:row-reverse}
+.avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.avatar.ai{background:rgba(108,99,255,0.15);color:#8b84ff}
+.avatar.user{background:#1a1d27;color:#5a5f75}
+.bubble{padding:14px 18px;font-size:14px;line-height:1.8;max-width:75%;color:#e8eaf0}
+.bubble.ai{background:#1a1d27;border:1px solid rgba(255,255,255,0.06);border-radius:4px 16px 16px 16px}
+.bubble.user{background:rgba(108,99,255,0.1);border:1px solid rgba(108,99,255,0.2);border-radius:16px 4px 16px 16px}
+.bubble strong{color:#ffffff;font-weight:700}
+.analysis-heading{margin:18px 0 8px;color:#ffffff;font-size:17px;font-weight:800;line-height:1.35}
+.analysis-heading:first-child{margin-top:0}
+.inputbar{background:#1a1d27;border-top:1px solid rgba(255,255,255,0.06);padding:16px 32px;display:flex;gap:12px;align-items:center;flex-shrink:0}
+#chat-input{flex:1;background:#22263a;color:white;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:13px 18px;font-size:14px;outline:none;font-family:'Inter',sans-serif;transition:border .2s,box-shadow .2s}
+#chat-input::placeholder{color:#5a5f75}
+#chat-input:focus{border-color:#6c63ff;box-shadow:0 0 0 3px rgba(108,99,255,0.1)}
+#send-btn{background:#6c63ff;color:white;border:none;border-radius:12px;padding:13px 24px;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap}
+#send-btn:hover{opacity:.85}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#5a5f75;animation:bounce 1.2s infinite}
+.dot:nth-child(2){animation-delay:.2s}
+.dot:nth-child(3){animation-delay:.4s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+#chat-bubble{position:relative}
+#chat-bubble::before{content:'';position:absolute;inset:0;border-radius:99px;background:#6c63ff;animation:pulse-ring 2s infinite;z-index:-1;opacity:0.4}
+@keyframes pulse-ring{0%{transform:scale(1);opacity:0.4}100%{transform:scale(1.4);opacity:0}}
+@media(max-width:820px){.main{flex-direction:column}.sidebar{width:100%;height:220px;border-right:0;border-bottom:1px solid rgba(255,255,255,0.06)}.chat-header{padding:20px 18px 0}.messages{padding:0 18px 14px}.inputbar{padding:12px}.bubble{max-width:86%}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <span class="topbar-logo">StockSage AI</span>
+  <span class="topbar-tag">Stock Research</span>
+</div>
+<div class="main">
+  <aside class="sidebar">
+    <span class="sidebar-label">QUICK RESEARCH</span>
+    <button class="stock-btn" type="button" onclick="ask('Analyse Reliance Industries for me')"><span class="sname">Reliance Industries</span><span class="sexch">NSE</span></button>
+    <button class="stock-btn" type="button" onclick="ask('Analyse Apple AAPL for me')"><span class="sname">Apple AAPL</span><span class="sexch">NASDAQ</span></button>
+    <button class="stock-btn" type="button" onclick="ask('Analyse Infosys for me')"><span class="sname">Infosys</span><span class="sexch">NSE</span></button>
+    <button class="stock-btn" type="button" onclick="ask('Analyse Tesla TSLA for me')"><span class="sname">Tesla TSLA</span><span class="sexch">NASDAQ</span></button>
+    <button class="stock-btn" type="button" onclick="ask('Analyse HDFC Bank for me')"><span class="sname">HDFC Bank</span><span class="sexch">NSE</span></button>
+    <button class="stock-btn" type="button" onclick="ask('Analyse Tata Motors for me')"><span class="sname">Tata Motors</span><span class="sexch">NSE</span></button>
+    <button class="stock-btn" type="button" onclick="ask('Analyse NVIDIA NVDA for me')"><span class="sname">NVIDIA NVDA</span><span class="sexch">NASDAQ</span></button>
+    <div class="sidebar-divider"></div>
+    <span class="sidebar-label">MARKET OUTLOOK</span>
+    <button class="stock-btn" type="button" onclick="ask('What is the overall Indian NSE BSE market outlook right now?')"><span class="sname">🌍 NSE/BSE Outlook</span><span class="sexch">Indian Market</span></button>
+    <button class="stock-btn" type="button" onclick="ask('What is the overall US stock market outlook right now?')"><span class="sname">🇺🇸 US Market Outlook</span><span class="sexch">US Market</span></button>
+  </aside>
+  <section class="chat-area">
+    <div class="chat-header">
+      <div class="chat-eyebrow">STOCK RESEARCH</div>
+      <h1 class="chat-heading">Ask me about any stock.</h1>
+      <p class="chat-subtext">Get fundamentals, pros, risks, and a clear verdict — in seconds.</p>
+    </div>
+    <div class="messages" id="messages"></div>
+    <div class="inputbar">
+      <input type="text" id="chat-input" placeholder="Ask about any stock... e.g. Analyse HDFC Bank" />
+      <button id="send-btn" onclick="sendMessage()">Send</button>
+    </div>
+  </section>
+</div>
+<div class="bottomnav">
+  <a href="/chat" class="active"><span class="icon">📊</span><span>Research</span></a>
+  <a href="/budget"><span class="icon">💼</span><span>Budget</span></a>
+  <a href="/news"><span class="icon">📰</span><span>News</span></a>
+</div>
+<script>
+function formatResponse(text) {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/^#{1,6}\s*(.*?)$/gm, '<div class="analysis-heading">$1</div>')
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/📌/g, '<br><br>📌')
+    .replace(/💼/g, '<br><br>💼')
+    .replace(/💰/g, '<br><br>💰')
+    .replace(/✅/g, '<br><br>✅')
+    .replace(/⚠️/g, '<br><br>⚠️')
+    .replace(/🏆/g, '<br><br>🏆')
+    .replace(/📝/g, '<br><br>📝')
+    .replace(/→/g, '<br>→')
+    .replace(/\n/g, '<br>')
+    .replace(/^(<br>)+/, '')
+    .replace(/<br><div class="analysis-heading">/g, '<div class="analysis-heading">');
+}
+function addMsg(role, html) {
+  const msgs = document.getElementById('messages');
+  const row = document.createElement('div');
+  row.className = 'msg-row ' + role;
+  row.innerHTML = `<div class="avatar ${role}">${role==='ai'?'SS':'You'}</div><div class="bubble ${role}">${html}</div>`;
+  msgs.appendChild(row);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+function showTyping() {
+  const msgs = document.getElementById('messages');
+  const row = document.createElement('div');
+  row.className = 'msg-row ai';
+  row.id = 'typing';
+  row.innerHTML = '<div class="avatar ai">SS</div><div class="bubble ai"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>';
+  msgs.appendChild(row);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+function hideTyping() {
+  const t = document.getElementById('typing');
+  if(t) t.remove();
+}
+async function sendMessage() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if(!text) return;
+  addMsg('user', text);
+  input.value = '';
+  showTyping();
+  try {
+    const res = await fetch('/api/chat', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({message: text})});
+    const data = await res.json();
+    hideTyping();
+    addMsg('ai', formatResponse(data.response));
+  } catch(e) {
+    hideTyping();
+    addMsg('ai', 'Something went wrong. Please try again.');
+  }
+}
+function ask(text) {
+  document.getElementById('chat-input').value = text;
+  sendMessage();
+}
+document.getElementById('chat-input').addEventListener('keydown', function(e) {
+  if(e.key === 'Enter') sendMessage();
+});
+let bubbleOpen = false;
+const BUBBLE_KEY = 'stocksage_bubble_msgs';
+
+function saveBubbleMsgs(){
+  const msgs = document.getElementById('bubble-messages');
+  const items = [];
+  msgs.querySelectorAll('[data-role]').forEach(el => {
+    items.push({role: el.dataset.role, text: el.dataset.text});
+  });
+  sessionStorage.setItem(BUBBLE_KEY, JSON.stringify(items));
+}
+
+function loadBubbleMsgs(){
+  const saved = sessionStorage.getItem(BUBBLE_KEY);
+  if(!saved) return false;
+  const items = JSON.parse(saved);
+  if(items.length === 0) return false;
+  items.forEach(item => addBubbleMsg(item.role, item.text, false));
+  return true;
+}
+
+function toggleChatBubble(){
+  bubbleOpen = !bubbleOpen;
+  const popup = document.getElementById('chat-popup');
+  const label = document.getElementById('bubble-label');
+  const bubble = document.getElementById('chat-bubble');
+  popup.style.display = bubbleOpen ? 'flex' : 'none';
+  if(bubbleOpen){
+    if(label) label.style.display = 'none';
+    bubble.style.padding = '14px';
+    const msgs = document.getElementById('bubble-messages');
+    if(msgs.children.length === 0){
+      const loaded = loadBubbleMsgs();
+      if(!loaded){
+        addBubbleMsg('ai', "Hey! 👋 Got questions about stocks, markets, or investing? Ask me anything and I'll explain it clearly.", true);
+      }
+    }
+    msgs.scrollTop = msgs.scrollHeight;
+  } else {
+    if(label) label.style.display = 'block';
+    bubble.style.padding = '14px 20px';
+  }
+}
+
+function addBubbleMsg(role, text, save=true){
+  const msgs = document.getElementById('bubble-messages');
+  const div = document.createElement('div');
+  div.dataset.role = role;
+  div.dataset.text = text;
+  div.style.cssText = `display:flex;gap:8px;align-items:flex-start;${role==='user'?'flex-direction:row-reverse':''}`;
+  div.innerHTML = `
+    <div style="width:28px;height:28px;border-radius:50%;background:${role==='ai'?'rgba(108,99,255,0.2)':'#22263a'};color:${role==='ai'?'#8b84ff':'#8b90a7'};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">${role==='ai'?'SS':'You'}</div>
+    <div style="max-width:80%;padding:10px 13px;font-size:13px;line-height:1.6;color:#e8eaf0;border-radius:${role==='ai'?'4px 12px 12px 12px':'12px 4px 12px 12px'};background:${role==='ai'?'rgba(255,255,255,0.04)':'rgba(108,99,255,0.12)'};border:1px solid ${role==='ai'?'rgba(255,255,255,0.06)':'rgba(108,99,255,0.2)'}">${text}</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  if(save) saveBubbleMsgs();
+}
+
+function showBubbleTyping(){
+  const msgs = document.getElementById('bubble-messages');
+  const div = document.createElement('div');
+  div.id = 'bubble-typing';
+  div.style.cssText = 'display:flex;gap:8px;align-items:flex-start';
+  div.innerHTML = `<div style="width:28px;height:28px;border-radius:50%;background:rgba(108,99,255,0.2);color:#8b84ff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700">SS</div><div style="padding:10px 13px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:4px 12px 12px 12px;display:flex;gap:4px;align-items:center"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function hideBubbleTyping(){
+  const t = document.getElementById('bubble-typing');
+  if(t) t.remove();
+}
+
+async function sendBubbleMsg(){
+  const input = document.getElementById('bubble-input');
+  const text = input.value.trim();
+  if(!text) return;
+  addBubbleMsg('user', text, true);
+  input.value = '';
+  showBubbleTyping();
+  try{
+    const res = await fetch('/api/chat', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({message: text})});
+    const data = await res.json();
+    hideBubbleTyping();
+    const formatted = data.response
+      .replace(/^#{1,3}\s+/gm,'')
+      .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+      .replace(/→/g,'<br>→')
+      .replace(/\n/g,'<br>');
+    addBubbleMsg('ai', formatted, true);
+  }catch(e){
+    hideBubbleTyping();
+    addBubbleMsg('ai', 'Something went wrong. Please try again.', true);
+  }
+}
+addMsg('ai', "Hey there! 👋 I'm StockSage — your personal stock market advisor. I cover both Indian 🇮🇳 and US 🇺🇸 markets. Drop any stock name and I'll break it all down — company overview, price range, pros, risks, and a clear verdict. No jargon, no fluff — just honest analysis. Let's go! 🚀");
+</script>
+<div id="chat-bubble" onclick="toggleChatBubble()" style="position:fixed;bottom:76px;right:20px;background:#6c63ff;border-radius:99px;display:flex;align-items:center;gap:8px;cursor:pointer;z-index:300;box-shadow:0 4px 24px rgba(108,99,255,0.5);transition:all .3s;padding:14px 20px">
+  <span style="font-size:18px">💬</span>
+  <span id="bubble-label" style="font-size:13px;font-weight:700;color:white;white-space:nowrap">Ask StockSage</span>
+</div>
+<div id="chat-popup" style="display:none;position:fixed;bottom:140px;right:20px;width:360px;height:460px;background:#1a1d27;border:1px solid rgba(255,255,255,0.1);border-radius:20px;z-index:300;display:none;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,0.5)">
+  <div style="padding:16px 18px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;justify-content:space-between;align-items:center">
+    <div>
+      <div style="font-size:14px;font-weight:700;color:white">StockSage Assistant</div>
+      <div style="font-size:11px;color:#5a5f75;margin-top:2px">Ask me anything about markets</div>
+    </div>
+    <button onclick="toggleChatBubble()" style="background:rgba(255,255,255,0.06);border:none;color:#8b90a7;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:14px">✕</button>
+  </div>
+  <div id="bubble-messages" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px"></div>
+  <div style="padding:12px 14px;border-top:1px solid rgba(255,255,255,0.06);display:flex;gap:8px">
+    <input id="bubble-input" type="text" placeholder="Ask about any stock or market..." style="flex:1;background:#22263a;color:white;border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:10px 14px;font-size:13px;outline:none;font-family:'Inter',sans-serif" onkeydown="if(event.key==='Enter')sendBubbleMsg()" />
+    <button onclick="sendBubbleMsg()" style="background:#6c63ff;color:white;border:none;border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer">→</button>
+  </div>
+</div>
+</body>
+</html>

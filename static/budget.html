@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StockSage AI - Budget Planner</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            overflow: hidden;
+            background: #0f1117;
+            color: white;
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+
+        .topbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            display: flex;
+            height: 52px;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            background: #1a1d27;
+            padding: 12px 24px;
+        }
+
+        .logo {
+            color: white;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .tagline {
+            color: #5a5f75;
+            font-size: 12px;
+        }
+
+        .main-content {
+            position: fixed;
+            top: 52px;
+            right: 0;
+            bottom: 60px;
+            left: 0;
+            display: flex;
+            align-items: flex-start;
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            gap: 20px;
+            min-height: calc(100vh - 52px - 60px);
+            overflow-y: auto;
+            background: #0f1117;
+            padding: 28px 32px;
+        }
+
+        .left-column,
+        .right-column {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .left-column {
+            padding-right: 48px;
+        }
+
+        .right-column {
+            padding-left: 20px;
+        }
+
+        .form-card {
+            max-width: 560px;
+            height: fit-content;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            background: #1a1d27;
+            padding: 36px;
+        }
+
+        .results-card {
+            height: fit-content;
+            overflow-y: visible;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            background: #1a1d27;
+            padding: 36px;
+        }
+
+        .form-card h1 {
+            margin-bottom: 6px;
+            background: linear-gradient(135deg, #ffffff 0%, #8b84ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: white;
+            font-size: 36px;
+            font-weight: 800;
+            letter-spacing: -1.5px;
+        }
+
+        .form-subtext {
+            margin-bottom: 36px;
+            color: #5a5f75;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .field {
+            margin-bottom: 0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #6c63ff;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        input,
+        select {
+            width: 100%;
+            margin-bottom: 28px;
+            border: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 0;
+            outline: none;
+            background: transparent;
+            color: white;
+            padding: 14px 4px;
+            font-size: 16px;
+        }
+
+        input:focus,
+        select:focus {
+            border-bottom-color: #6c63ff;
+        }
+
+        select option {
+            background: #22263a;
+            color: white;
+        }
+
+        #submit-btn {
+            width: 100%;
+            border: none;
+            border-radius: 10px;
+            background: #6c63ff;
+            color: white;
+            cursor: pointer;
+            padding: 18px;
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+        }
+
+        #submit-btn:hover {
+            opacity: 0.85;
+        }
+
+        #submit-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.65;
+        }
+
+        .form-disclaimer {
+            margin-top: 10px;
+            color: #5a5f75;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        #results {
+            display: none;
+        }
+
+        #results[style*="display: block"] + .results-placeholder {
+            display: none;
+        }
+
+        .results-placeholder {
+            padding-top: 12px;
+        }
+
+        .placeholder-heading {
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, #ffffff 0%, #8b84ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: rgba(255, 255, 255, 0.08);
+            font-size: 24px;
+            font-weight: 800;
+        }
+
+        .skeleton-bar {
+            height: 60px;
+            margin-bottom: 12px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        #results-title {
+            margin-bottom: 4px;
+            color: white;
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        #results-sub {
+            margin-bottom: 32px;
+            color: #5a5f75;
+            font-size: 14px;
+        }
+
+        .allocation {
+            margin-bottom: 0;
+        }
+
+        .allocation + .allocation {
+            margin-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 16px;
+        }
+
+        .allocation-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .allocation-name {
+            color: white;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .allocation-amount {
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .bar-track {
+            height: 8px;
+            margin: 10px 0;
+            border-radius: 99px;
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .bar-fill {
+            height: 8px;
+            border-radius: 99px;
+        }
+
+        .rationale {
+            margin-top: 6px;
+            color: #5a5f75;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .examples {
+            margin-top: 4px;
+            color: rgba(255, 255, 255, 0.35);
+            font-size: 12px;
+        }
+
+        #risk-badge {
+            display: inline-block;
+            margin-top: 8px;
+            margin-bottom: 16px;
+            border-radius: 99px;
+            padding: 5px 14px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        #results-summary {
+            color: #8b90a7;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        .results-disclaimer {
+            margin-top: 16px;
+            color: rgba(255, 255, 255, 0.2);
+            font-size: 12px;
+        }
+
+        .error {
+            color: #ef4444;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#5a5f75;animation:bounce 1.2s infinite}
+        .dot:nth-child(2){animation-delay:.2s}
+        .dot:nth-child(3){animation-delay:.4s}
+        @keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
+        #chat-bubble{position:relative}
+        #chat-bubble::before{content:'';position:absolute;inset:0;border-radius:99px;background:#6c63ff;animation:pulse-ring 2s infinite;z-index:-1;opacity:0.4}
+        @keyframes pulse-ring{0%{transform:scale(1);opacity:0.4}100%{transform:scale(1.4);opacity:0}}
+
+        .bottomnav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            display: flex;
+            height: 60px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            background: #1a1d27;
+        }
+
+        .bottomnav a {
+            display: flex;
+            flex: 1;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            color: #5a5f75;
+            font-size: 11px;
+            text-decoration: none;
+        }
+
+        .bottomnav a.active,
+        .bottomnav a:hover {
+            color: #6c63ff;
+        }
+
+        .icon {
+            font-size: 16px;
+            line-height: 1;
+        }
+
+        @media (max-width: 880px) {
+            .main-content {
+                flex-direction: column;
+                padding: 28px 20px;
+            }
+
+            .left-column {
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+                padding-right: 0;
+                padding-bottom: 32px;
+            }
+
+            .right-column {
+                padding-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="topbar">
+        <div class="logo">StockSage AI</div>
+        <div class="tagline">Plan your portfolio</div>
+    </header>
+
+    <main class="main-content">
+        <section class="left-column">
+            <div class="form-card">
+                <h1>Plan Your Portfolio</h1>
+                <p class="form-subtext">Tell us your budget and we'll build a smart allocation plan for you.</p>
+
+                <div class="field">
+                    <label for="amount">How much do you want to invest?</label>
+                    <input id="amount" type="number" placeholder="e.g. 50000">
+                </div>
+
+                <div class="field">
+                    <label for="currency">Currency and Market</label>
+                    <select id="currency">
+                        <option value="INR">₹ INR — Indian Market (NSE/BSE)</option>
+                        <option value="USD">$ USD — US Market (NASDAQ/NYSE)</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label for="risk">Your Risk Appetite</label>
+                    <select id="risk">
+                        <option value="conservative">Conservative — I want to protect my money</option>
+                        <option value="moderate">Moderate — I want balanced growth</option>
+                        <option value="aggressive">Aggressive — I want maximum returns</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label for="horizon">Investment Time Horizon</label>
+                    <select id="horizon">
+                        <option value="short">Short Term — Less than 1 year</option>
+                        <option value="medium">Medium Term — 1 to 3 years</option>
+                        <option value="long">Long Term — 3 years or more</option>
+                    </select>
+                </div>
+
+                <button id="submit-btn" type="button">Analyse My Budget →</button>
+                <p class="form-disclaimer">Your data stays private. This is not financial advice.</p>
+            </div>
+        </section>
+
+        <section class="right-column">
+            <div class="results-card">
+                <div id="results">
+                    <h2 id="results-title"></h2>
+                    <p id="results-sub"></p>
+                    <div id="allocations"></div>
+                    <span id="risk-badge"></span>
+                    <p id="results-summary"></p>
+                    <p class="results-disclaimer">Disclaimer: This is not financial advice. Always do your own research before investing.</p>
+                </div>
+                <div class="results-placeholder">
+                    <h2 class="placeholder-heading">Your allocation will appear here</h2>
+                    <div class="skeleton-bar"></div>
+                    <div class="skeleton-bar"></div>
+                    <div class="skeleton-bar"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <nav class="bottomnav">
+        <a href="/chat"><span class="icon">📊</span><span>Research</span></a>
+        <a class="active" href="/budget"><span class="icon">💼</span><span>Budget</span></a>
+        <a href="/news"><span class="icon">📰</span><span>News</span></a>
+    </nav>
+
+    <script>
+        const submitButton = document.getElementById("submit-btn");
+        const results = document.getElementById("results");
+        const resultsTitle = document.getElementById("results-title");
+        const resultsSub = document.getElementById("results-sub");
+        const allocations = document.getElementById("allocations");
+        const riskBadge = document.getElementById("risk-badge");
+        const resultsSummary = document.getElementById("results-summary");
+
+        function currencySymbol(currency) {
+            return currency === "INR" ? "₹" : "$";
+        }
+
+        function plainRisk(risk) {
+            return {
+                conservative: "conservative",
+                moderate: "moderate",
+                aggressive: "aggressive",
+            }[risk];
+        }
+
+        function plainHorizon(horizon) {
+            return {
+                short: "short-term",
+                medium: "medium-term",
+                long: "long-term",
+            }[horizon];
+        }
+
+        function setRiskBadge(level) {
+            riskBadge.textContent = `${level} Risk`;
+            if (level === "Low") {
+                riskBadge.style.background = "rgba(34,197,94,0.15)";
+                riskBadge.style.color = "#22c55e";
+            } else if (level === "Moderate") {
+                riskBadge.style.background = "rgba(245,158,11,0.15)";
+                riskBadge.style.color = "#f59e0b";
+            } else {
+                riskBadge.style.background = "rgba(239,68,68,0.15)";
+                riskBadge.style.color = "#ef4444";
+            }
+        }
+
+        function renderResults(data, amount, currency, risk, horizon) {
+            const symbol = currencySymbol(currency);
+            results.style.display = "block";
+            resultsTitle.textContent = `Your Portfolio Plan — ${symbol}${amount.toLocaleString()}`;
+            resultsSub.textContent = `A ${plainRisk(risk)} plan for a ${plainHorizon(horizon)} investor in the ${currency === "INR" ? "Indian" : "US"} market.`;
+            allocations.innerHTML = "";
+
+            data.allocations.forEach((allocation) => {
+                const item = document.createElement("div");
+                item.className = "allocation";
+                item.innerHTML = `
+                    <div class="allocation-top">
+                        <span class="allocation-name">${allocation.name} · ${allocation.percentage}%</span>
+                        <span class="allocation-amount" style="color: ${allocation.color};">${symbol}${Number(allocation.amount).toLocaleString()}</span>
+                    </div>
+                    <div class="bar-track">
+                        <div class="bar-fill" style="width: ${allocation.percentage}%; background: ${allocation.color};"></div>
+                    </div>
+                    <p class="rationale">${allocation.rationale}</p>
+                    <p class="examples">${allocation.examples.join(" · ")}</p>
+                `;
+                allocations.appendChild(item);
+            });
+
+            setRiskBadge(data.riskLevel);
+            resultsSummary.textContent = data.summary;
+            results.scrollIntoView({behavior: "smooth", block: "start"});
+        }
+
+        function showError(message) {
+            results.style.display = "block";
+            resultsTitle.textContent = "Could not create your plan";
+            resultsSub.textContent = "";
+            allocations.innerHTML = `<p class="error">${message}</p>`;
+            riskBadge.textContent = "";
+            riskBadge.removeAttribute("style");
+            resultsSummary.textContent = "";
+        }
+
+        async function analyseBudget() {
+            const amount = Number(document.getElementById("amount").value);
+            const currency = document.getElementById("currency").value;
+            const risk = document.getElementById("risk").value;
+            const horizon = document.getElementById("horizon").value;
+
+            if (!amount || amount <= 0) {
+                alert("Please enter a valid investment amount");
+                return;
+            }
+
+            submitButton.textContent = "Analysing your budget...";
+            submitButton.disabled = true;
+
+            try {
+                const response = await fetch("/api/budget", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({amount, currency, risk, horizon}),
+                });
+
+                if (!response.ok) {
+                    throw new Error("Request failed");
+                }
+
+                const data = await response.json();
+                renderResults(data, amount, currency, risk, horizon);
+            } catch (error) {
+                showError("Something went wrong while creating your budget plan. Please try again.");
+            } finally {
+                submitButton.textContent = "Analyse My Budget →";
+                submitButton.disabled = false;
+            }
+        }
+let bubbleOpen = false;
+const BUBBLE_KEY = 'stocksage_bubble_msgs';
+
+function saveBubbleMsgs(){
+  const msgs = document.getElementById('bubble-messages');
+  const items = [];
+  msgs.querySelectorAll('[data-role]').forEach(el => {
+    items.push({role: el.dataset.role, text: el.dataset.text});
+  });
+  sessionStorage.setItem(BUBBLE_KEY, JSON.stringify(items));
+}
+
+function loadBubbleMsgs(){
+  const saved = sessionStorage.getItem(BUBBLE_KEY);
+  if(!saved) return false;
+  const items = JSON.parse(saved);
+  if(items.length === 0) return false;
+  items.forEach(item => addBubbleMsg(item.role, item.text, false));
+  return true;
+}
+
+function toggleChatBubble(){
+  bubbleOpen = !bubbleOpen;
+  const popup = document.getElementById('chat-popup');
+  const label = document.getElementById('bubble-label');
+  const bubble = document.getElementById('chat-bubble');
+  popup.style.display = bubbleOpen ? 'flex' : 'none';
+  if(bubbleOpen){
+    if(label) label.style.display = 'none';
+    bubble.style.padding = '14px';
+    const msgs = document.getElementById('bubble-messages');
+    if(msgs.children.length === 0){
+      const loaded = loadBubbleMsgs();
+      if(!loaded){
+        addBubbleMsg('ai', "Hey! 👋 Got questions about stocks, markets, or investing? Ask me anything and I'll explain it clearly.", true);
+      }
+    }
+    msgs.scrollTop = msgs.scrollHeight;
+  } else {
+    if(label) label.style.display = 'block';
+    bubble.style.padding = '14px 20px';
+  }
+}
+
+function addBubbleMsg(role, text, save=true){
+  const msgs = document.getElementById('bubble-messages');
+  const div = document.createElement('div');
+  div.dataset.role = role;
+  div.dataset.text = text;
+  div.style.cssText = `display:flex;gap:8px;align-items:flex-start;${role==='user'?'flex-direction:row-reverse':''}`;
+  div.innerHTML = `
+    <div style="width:28px;height:28px;border-radius:50%;background:${role==='ai'?'rgba(108,99,255,0.2)':'#22263a'};color:${role==='ai'?'#8b84ff':'#8b90a7'};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">${role==='ai'?'SS':'You'}</div>
+    <div style="max-width:80%;padding:10px 13px;font-size:13px;line-height:1.6;color:#e8eaf0;border-radius:${role==='ai'?'4px 12px 12px 12px':'12px 4px 12px 12px'};background:${role==='ai'?'rgba(255,255,255,0.04)':'rgba(108,99,255,0.12)'};border:1px solid ${role==='ai'?'rgba(255,255,255,0.06)':'rgba(108,99,255,0.2)'}">${text}</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  if(save) saveBubbleMsgs();
+}
+
+function showBubbleTyping(){
+  const msgs = document.getElementById('bubble-messages');
+  const div = document.createElement('div');
+  div.id = 'bubble-typing';
+  div.style.cssText = 'display:flex;gap:8px;align-items:flex-start';
+  div.innerHTML = `<div style="width:28px;height:28px;border-radius:50%;background:rgba(108,99,255,0.2);color:#8b84ff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700">SS</div><div style="padding:10px 13px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:4px 12px 12px 12px;display:flex;gap:4px;align-items:center"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function hideBubbleTyping(){
+  const t = document.getElementById('bubble-typing');
+  if(t) t.remove();
+}
+
+async function sendBubbleMsg(){
+  const input = document.getElementById('bubble-input');
+  const text = input.value.trim();
+  if(!text) return;
+  addBubbleMsg('user', text, true);
+  input.value = '';
+  showBubbleTyping();
+  try{
+    const res = await fetch('/api/chat', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({message: text})});
+    const data = await res.json();
+    hideBubbleTyping();
+    const formatted = data.response
+      .replace(/^#{1,3}\s+/gm,'')
+      .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+      .replace(/→/g,'<br>→')
+      .replace(/\n/g,'<br>');
+    addBubbleMsg('ai', formatted, true);
+  }catch(e){
+    hideBubbleTyping();
+    addBubbleMsg('ai', 'Something went wrong. Please try again.', true);
+  }
+}
+
+        submitButton.addEventListener("click", analyseBudget);
+    </script>
+<div id="chat-bubble" onclick="toggleChatBubble()" style="position:fixed;bottom:76px;right:20px;background:#6c63ff;border-radius:99px;display:flex;align-items:center;gap:8px;cursor:pointer;z-index:300;box-shadow:0 4px 24px rgba(108,99,255,0.5);transition:all .3s;padding:14px 20px">
+  <span style="font-size:18px">💬</span>
+  <span id="bubble-label" style="font-size:13px;font-weight:700;color:white;white-space:nowrap">Ask StockSage</span>
+</div>
+<div id="chat-popup" style="display:none;position:fixed;bottom:140px;right:20px;width:360px;height:460px;background:#1a1d27;border:1px solid rgba(255,255,255,0.1);border-radius:20px;z-index:300;display:none;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,0.5)">
+  <div style="padding:16px 18px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;justify-content:space-between;align-items:center">
+    <div>
+      <div style="font-size:14px;font-weight:700;color:white">StockSage Assistant</div>
+      <div style="font-size:11px;color:#5a5f75;margin-top:2px">Ask me anything about markets</div>
+    </div>
+    <button onclick="toggleChatBubble()" style="background:rgba(255,255,255,0.06);border:none;color:#8b90a7;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:14px">✕</button>
+  </div>
+  <div id="bubble-messages" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px"></div>
+  <div style="padding:12px 14px;border-top:1px solid rgba(255,255,255,0.06);display:flex;gap:8px">
+    <input id="bubble-input" type="text" placeholder="Ask about any stock or market..." style="flex:1;background:#22263a;color:white;border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:10px 14px;font-size:13px;outline:none;font-family:'Inter',sans-serif" onkeydown="if(event.key==='Enter')sendBubbleMsg()" />
+    <button onclick="sendBubbleMsg()" style="background:#6c63ff;color:white;border:none;border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer">→</button>
+  </div>
+</div>
+</body>
+</html>
