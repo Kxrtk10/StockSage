@@ -6,6 +6,7 @@ from fastapi.staticfiles import StaticFiles
 from database import init_db
 from routes import budget, chat, news
 from routes.auth import router as auth_router
+from routes.stocks import router as stocks_router
 load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent
 STATIC_DIR = BASE_DIR / "static"
@@ -16,6 +17,7 @@ app.include_router(chat.router)
 app.include_router(budget.router)
 app.include_router(news.router)
 app.include_router(auth_router)
+app.include_router(stocks_router)
 @app.get("/")
 async def root():
     return FileResponse(STATIC_DIR / "index.html")
