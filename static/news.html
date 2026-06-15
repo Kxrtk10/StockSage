@@ -73,51 +73,42 @@ body{background:#0f1117;color:#f0f2ff;font-family:'Inter',system-ui,sans-serif;o
   <a href="/profile" id="nav-profile">👤<span>Profile</span></a>
 </div>
 <script>
-async function logout(){
-  await fetch('/api/auth/logout', {method:'POST'});
-  window.location.href='/login';
-}
-// Auth check — redirect to login if not authenticated
 async function checkAuth(){
   try{
     const res = await fetch('/api/auth/me');
-    if(!res.ok){
-      window.location.href = '/login';
-      return null;
-    }
-    const user = await res.json();
-    return user;
-  }catch(e){
-    window.location.href = '/login';
-    return null;
-  }
+    if(!res.ok){ window.location.href='/login'; return null; }
+    return await res.json();
+  }catch(e){ window.location.href='/login'; return null; }
 }
-checkAuth();
-const NEWS=[
-  {market:"INDIA",sector:"banking",source:"Economic Times",time:"2h ago",headline:"RBI holds repo rate steady at 6.5% signalling confidence in inflation control",summary:"The Monetary Policy Committee voted unanimously to maintain rates, citing stable CPI and resilient GDP growth. Analysts see this as a green signal for rate-sensitive sectors.",sentiment:"Neutral"},
-  {market:"US",sector:"tech",source:"Bloomberg",time:"3h ago",headline:"NVIDIA crosses $3 trillion market cap on record AI chip demand",summary:"Strong data center revenue and sustained H100 demand pushed NVIDIA to a historic milestone, briefly overtaking Microsoft as the world's most valuable company.",sentiment:"Bullish"},
-  {market:"INDIA",sector:"energy",source:"Mint",time:"4h ago",headline:"Adani Green Energy secures Rs 12000 crore renewable project in Rajasthan",summary:"The deal adds 1.5 GW to Adani's solar pipeline and cements its position as India's largest renewable energy company by installed capacity.",sentiment:"Bullish"},
-  {market:"US",sector:"banking",source:"Reuters",time:"5h ago",headline:"Fed signals two rate cuts possible in second half of 2025 if inflation cools",summary:"Federal Reserve minutes revealed a dovish tilt among members, with 50 basis points of cuts seen as realistic if CPI continues its downward trend through Q2.",sentiment:"Bullish"},
-  {market:"INDIA",sector:"tech",source:"NDTV Profit",time:"6h ago",headline:"Infosys raises FY25 revenue guidance on back of record deal pipeline",summary:"The IT major upgraded its constant currency growth forecast to 4.5 to 5 percent, driven by a record deal total contract value of 9.4 billion dollars.",sentiment:"Bullish"},
-  {market:"US",sector:"energy",source:"WSJ",time:"7h ago",headline:"Oil prices fall as OPEC signals possible output increase in Q3 2025",summary:"Crude futures dropped 1.8 percent after sources indicated Saudi Arabia may ease supply curbs if Chinese demand data remains weak through the summer.",sentiment:"Bearish"},
-  {market:"INDIA",sector:"auto",source:"Business Standard",time:"8h ago",headline:"Tata Motors EV sales surge 38 percent in May driven by Nexon and Punch",summary:"Strong domestic EV demand and new model launches helped Tata Motors maintain over 70 percent market share in Indian electric passenger vehicles.",sentiment:"Bullish"},
-  {market:"US",sector:"tech",source:"CNBC",time:"9h ago",headline:"Apple Intelligence features drive record iPhone upgrade cycle in emerging markets",summary:"Apple reported stronger than expected emerging market growth with AI-powered features cited as the primary driver of upgrades in India, Brazil, and Southeast Asia.",sentiment:"Bullish"}
-];
+
+async function logout(){
+  await fetch('/api/auth/logout', {method:'POST'});
+  window.location.href = '/login';
+}
+
+let allNews = [];
+let currentFilter = 'all';
+
 function sentimentHTML(s){
-  if(s==="Bullish")return'<span class="bullish">↑ Bullish</span>';
-  if(s==="Bearish")return'<span class="bearish">↓ Bearish</span>';
-  return'<span class="neutral">→ Neutral</span>';
+  if(s==='Bullish') return '<span class="bullish">↑ Bullish</span>';
+  if(s==='Bearish') return '<span class="bearish">↓ Bearish</span>';
+  return '<span class="neutral">→ Neutral</span>';
 }
+
 function renderNews(filter){
-  const grid=document.getElementById('news-grid');
-  const filtered=filter==='all'?NEWS:NEWS.filter(n=>n.market.toLowerCase()===filter||n.sector===filter);
-  grid.innerHTML=filtered.map(n=>`
-    <div class="card" onclick="openNews(${NEWS.indexOf(n)})">
+  const grid = document.getElementById('news-grid');
+  const filtered = filter === 'all' ? allNews : allNews.filter(n => n.market.toLowerCase() === filter || n.sector === filter);
+  if(filtered.length === 0){
+    grid.innerHTML = '<div style="color:#5a5f75;font-size:14px;text-align:center;padding:40px;grid-column:1/-1">No news found for this filter.</div>';
+    return;
+  }
+  grid.innerHTML = filtered.map((n, i) => `
+    <div class="card" onclick="openNews(${allNews.indexOf(n)})">
       <div class="card-top">
         <span class="badge ${n.market==='INDIA'?'badge-india':'badge-us'}">${n.market}</span>
         <span class="card-source">${n.source} · ${n.time}</span>
       </div>
-      <div class="card-headline">${n.headline}</div>
+      <div class="card-headline">${n.title}</div>
       <div class="card-summary">${n.summary}</div>
       <div class="card-bottom">
         <span class="sector-tag">${n.sector.charAt(0).toUpperCase()+n.sector.slice(1)}</span>
@@ -125,157 +116,39 @@ function renderNews(filter){
       </div>
     </div>`).join('');
 }
-function filterNews(el,filter){
-  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+
+function filterNews(el, filter){
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
   el.classList.add('active');
+  currentFilter = filter;
   renderNews(filter);
 }
+
 function openNews(idx){
-  window.location.href='/news-detail?idx='+idx;
-}
-let bubbleOpen = false;
-let isDragging = false;
-let suppressBubbleClick = false;
-let dragStartX, dragStartY, bubbleStartX, bubbleStartY;
-const BUBBLE_KEY = 'stocksage_bubble_msgs';
-
-function startDrag(e){
-  const bubble = document.getElementById('chat-bubble');
-  dragStartX = e.clientX;
-  dragStartY = e.clientY;
-  const rect = bubble.getBoundingClientRect();
-  bubbleStartX = rect.left;
-  bubbleStartY = rect.top;
-  isDragging = false;
-  document.onmousemove = doDrag;
-  document.onmouseup = stopDrag;
-}
-
-function doDrag(e){
-  const bubble = document.getElementById('chat-bubble');
-  const dx = e.clientX - dragStartX;
-  const dy = e.clientY - dragStartY;
-  if(Math.abs(dx) > 5 || Math.abs(dy) > 5) isDragging = true;
-  if(!isDragging) return;
-  bubble.style.cursor = 'grabbing';
-  bubble.style.right = 'auto';
-  bubble.style.bottom = 'auto';
-  bubble.style.left = (bubbleStartX + dx) + 'px';
-  bubble.style.top = (bubbleStartY + dy) + 'px';
-  const popup = document.getElementById('chat-popup');
-  if(popup && bubbleOpen){
-    popup.style.left = (bubbleStartX + dx - 320) + 'px';
-    popup.style.top = (bubbleStartY + dy - 460) + 'px';
-    popup.style.right = 'auto';
-    popup.style.bottom = 'auto';
+  const article = allNews[idx];
+  if(article && article.url){
+    window.open(article.url, '_blank');
   }
 }
 
-function stopDrag(e){
-  document.onmousemove = null;
-  document.onmouseup = null;
-  const bubble = document.getElementById('chat-bubble');
-  bubble.style.cursor = 'grab';
-  suppressBubbleClick = isDragging;
-  isDragging = false;
-}
-
-function toggleChatBubble(){
-  if(suppressBubbleClick){
-    suppressBubbleClick = false;
-    return;
-  }
-  if(isDragging) return;
-  bubbleOpen = !bubbleOpen;
-  const popup = document.getElementById('chat-popup');
-  const label = document.getElementById('bubble-label');
-  const bubble = document.getElementById('chat-bubble');
-  popup.style.display = bubbleOpen ? 'flex' : 'none';
-  if(bubbleOpen){
-    if(label) label.style.display = 'none';
-    bubble.style.padding = '12px';
-    const msgs = document.getElementById('bubble-messages');
-    if(msgs.children.length === 0){
-      const loaded = loadBubbleMsgs();
-      if(!loaded) addBubbleMsg('ai', "Hey! ?? Got questions about stocks, markets, or investing? Ask me anything and I'll explain it clearly.", true);
-    }
-    msgs.scrollTop = msgs.scrollHeight;
-  } else {
-    if(label) label.style.display = 'block';
-    bubble.style.padding = '12px 18px';
-  }
-}
-
-function saveBubbleMsgs(){
-  const msgs = document.getElementById('bubble-messages');
-  const items = [];
-  msgs.querySelectorAll('[data-role]').forEach(el => {
-    items.push({role: el.dataset.role, text: el.dataset.text});
-  });
-  sessionStorage.setItem(BUBBLE_KEY, JSON.stringify(items));
-}
-
-function loadBubbleMsgs(){
-  const saved = sessionStorage.getItem(BUBBLE_KEY);
-  if(!saved) return false;
-  const items = JSON.parse(saved);
-  if(items.length === 0) return false;
-  items.forEach(item => addBubbleMsg(item.role, item.text, false));
-  return true;
-}
-
-function addBubbleMsg(role, text, save=true){
-  const msgs = document.getElementById('bubble-messages');
-  const div = document.createElement('div');
-  div.dataset.role = role;
-  div.dataset.text = text;
-  div.style.cssText = `display:flex;gap:8px;align-items:flex-start;${role==='user'?'flex-direction:row-reverse':''}`;
-  div.innerHTML = `
-    <div style="width:28px;height:28px;border-radius:50%;background:${role==='ai'?'rgba(108,99,255,0.2)':'#22263a'};color:${role==='ai'?'#8b84ff':'#8b90a7'};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">${role==='ai'?'SS':'You'}</div>
-    <div style="max-width:80%;padding:10px 13px;font-size:13px;line-height:1.6;color:#e8eaf0;border-radius:${role==='ai'?'4px 12px 12px 12px':'12px 4px 12px 12px'};background:${role==='ai'?'rgba(255,255,255,0.04)':'rgba(108,99,255,0.12)'};border:1px solid ${role==='ai'?'rgba(255,255,255,0.06)':'rgba(108,99,255,0.2)'}">${text}</div>`;
-  msgs.appendChild(div);
-  msgs.scrollTop = msgs.scrollHeight;
-  if(save) saveBubbleMsgs();
-}
-
-function showBubbleTyping(){
-  const msgs = document.getElementById('bubble-messages');
-  const div = document.createElement('div');
-  div.id = 'bubble-typing';
-  div.style.cssText = 'display:flex;gap:8px;align-items:flex-start';
-  div.innerHTML = `<div style="width:28px;height:28px;border-radius:50%;background:rgba(108,99,255,0.2);color:#8b84ff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700">SS</div><div style="padding:10px 13px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:4px 12px 12px 12px;display:flex;gap:4px;align-items:center"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>`;
-  msgs.appendChild(div);
-  msgs.scrollTop = msgs.scrollHeight;
-}
-
-function hideBubbleTyping(){
-  const t = document.getElementById('bubble-typing');
-  if(t) t.remove();
-}
-
-async function sendBubbleMsg(){
-  const input = document.getElementById('bubble-input');
-  const text = input.value.trim();
-  if(!text) return;
-  addBubbleMsg('user', text, true);
-  input.value = '';
-  showBubbleTyping();
+async function loadNews(){
+  const grid = document.getElementById('news-grid');
+  grid.innerHTML = '<div style="color:#5a5f75;font-size:14px;text-align:center;padding:40px;grid-column:1/-1">Loading latest market news...</div>';
   try{
-    const res = await fetch('/api/chat', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({message: text})});
+    const res = await fetch('/api/live-news');
     const data = await res.json();
-    hideBubbleTyping();
-    const formatted = data.response
-      .replace(/^#{1,3}\s+/gm,'')
-      .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
-      .replace(/\?/g,'<br>?')
-      .replace(/\n/g,'<br>');
-    addBubbleMsg('ai', formatted, true);
+    if(data.success && data.articles.length > 0){
+      allNews = data.articles;
+      renderNews(currentFilter);
+    } else {
+      grid.innerHTML = '<div style="color:#5a5f75;font-size:14px;text-align:center;padding:40px;grid-column:1/-1">Could not load news. Please try again later.</div>';
+    }
   }catch(e){
-    hideBubbleTyping();
-    addBubbleMsg('ai', 'Something went wrong. Please try again.', true);
+    grid.innerHTML = '<div style="color:#5a5f75;font-size:14px;text-align:center;padding:40px;grid-column:1/-1">Could not load news. Please try again later.</div>';
   }
 }
-renderNews('all');
+
+checkAuth().then(() => loadNews());
 </script>
 <div id="chat-bubble" onmousedown="startDrag(event)" onclick="toggleChatBubble()" style="position:fixed;bottom:76px;right:20px;background:#6c63ff;border-radius:99px;display:flex;align-items:center;gap:8px;cursor:grab;z-index:300;box-shadow:0 4px 20px rgba(108,99,255,0.35);padding:12px 18px;user-select:none;transition:box-shadow .2s">
   <span style="font-size:16px;pointer-events:none">🤖</span>
