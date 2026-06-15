@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
 
-router = APIRouter(prefix="/news", tags=["news"])
+router = APIRouter(prefix="/api/news", tags=["news"])
 
 
 @router.post("/")

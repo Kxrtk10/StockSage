@@ -3,3 +3,6 @@ uvicorn
 python-dotenv
 anthropic
 httpx
+passlib[bcrypt]
+python-jose[cryptography]
+python-multipart

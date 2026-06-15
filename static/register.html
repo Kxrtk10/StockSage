@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StockSage AI — Create Account</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0f1117;color:#f0f2ff;font-family:'Inter',system-ui,sans-serif;min-height:100vh;display:flex;}
+.left{flex:1;display:flex;flex-direction:column;justify-content:center;padding:80px 80px;border-right:1px solid rgba(108,99,255,0.15);box-shadow:1px 0 40px rgba(108,99,255,0.08)}
+.right{width:520px;display:flex;flex-direction:column;justify-content:center;padding:80px 56px}
+.eyebrow{font-size:11px;font-weight:600;color:#6c63ff;letter-spacing:2px;text-transform:uppercase;margin-bottom:16px}
+.big-heading{font-size:72px;font-weight:900;color:white;letter-spacing:-2px;line-height:1.1;margin-bottom:20px;text-shadow:0 0 80px rgba(108,99,255,0.5),0 0 160px rgba(108,99,255,0.2)}
+.big-heading span{color:#6c63ff}
+.left-sub{font-size:20px;color:#5a5f75;line-height:1.8;max-width:420px;margin-bottom:40px}
+.features{display:flex;flex-direction:column;gap:16px}
+.feature{display:flex;align-items:flex-start;gap:14px}
+.feature-icon{width:36px;height:36px;border-radius:10px;background:rgba(108,99,255,0.12);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.feature-title{font-size:14px;font-weight:600;color:white;margin-bottom:3px}
+.feature-desc{font-size:13px;color:#5a5f75;line-height:1.5}
+.form-eyebrow{font-size:11px;font-weight:600;color:#6c63ff;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px}
+.form-title{font-size:32px;font-weight:800;color:white;letter-spacing:-0.5px;margin-bottom:6px}
+.form-sub{font-size:14px;color:#5a5f75;margin-bottom:32px}
+.fg{margin-bottom:20px}
+.fg label{display:block;font-size:11px;font-weight:600;color:#6c63ff;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
+.fg input{width:100%;background:#1a1d27;color:white;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:16px 18px;font-size:15px;outline:none;font-family:'Inter',sans-serif;transition:border .2s}
+.fg input:focus{border-color:#6c63ff;box-shadow:0 0 0 3px rgba(108,99,255,0.1)}
+.fg input::placeholder{color:#5a5f75}
+.btn{width:100%;background:#6c63ff;color:white;border:none;border-radius:12px;padding:16px;font-size:16px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:opacity .15s;margin-top:4px}
+.btn:hover{opacity:.85}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.error{background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);color:#ef4444;font-size:13px;padding:12px 16px;border-radius:10px;margin-bottom:20px;display:none}
+.disclaimer{font-size:11px;color:#5a5f75;text-align:center;margin-top:16px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="left">
+  <div class="eyebrow">STOCKSAGE AI</div>
+  <div class="big-heading">Start investing<br><span>smarter</span> today.</div>
+  <div class="left-sub">Join thousands of investors using AI to make better decisions in both Indian and US stock markets.</div>
+  <div class="features">
+    <div class="feature">
+      <div class="feature-icon">📊</div>
+      <div><div class="feature-title">AI Stock Research</div><div class="feature-desc">Get full analysis on any stock — fundamentals, pros, risks, and a clear verdict.</div></div>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">💼</div>
+      <div><div class="feature-title">Smart Budget Planner</div><div class="feature-desc">Tell us your budget and we'll build a tailored portfolio allocation for you.</div></div>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">📰</div>
+      <div><div class="feature-title">Market News & Insights</div><div class="feature-desc">Curated news with AI sentiment analysis so you always know what's moving markets.</div></div>
+    </div>
+  </div>
+</div>
+<div class="right">
+  <div class="form-eyebrow">GET STARTED FREE</div>
+  <div class="form-title">Create your account</div>
+  <div class="form-sub">Already have an account? <a href="/login" style="color:#6c63ff;text-decoration:none;font-weight:600">Sign in →</a></div>
+  <div class="error" id="error"></div>
+  <div class="fg">
+    <label>Full Name</label>
+    <input type="text" id="name" placeholder="Your name" />
+  </div>
+  <div class="fg">
+    <label>Email</label>
+    <input type="email" id="email" placeholder="your@email.com" />
+  </div>
+  <div class="fg">
+    <label>Password</label>
+    <input type="password" id="password" placeholder="Min 6 characters" onkeydown="if(event.key==='Enter')register()" />
+  </div>
+  <button class="btn" id="btn" onclick="register()">Create Account →</button>
+  <div class="disclaimer">By creating an account you agree this is for informational purposes only and not financial advice.</div>
+</div>
+<script>
+async function register(){
+  const name=document.getElementById('name').value.trim();
+  const email=document.getElementById('email').value.trim();
+  const password=document.getElementById('password').value;
+  const error=document.getElementById('error');
+  const btn=document.getElementById('btn');
+  if(!name||!email||!password){error.textContent='Please fill in all fields.';error.style.display='block';return;}
+  if(password.length<6){error.textContent='Password must be at least 6 characters.';error.style.display='block';return;}
+  btn.disabled=true;btn.textContent='Creating account...';error.style.display='none';
+  try{
+    const res=await fetch('/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,email,password})});
+    const data=await res.json();
+    if(!res.ok){error.textContent=data.detail||'Something went wrong.';error.style.display='block';btn.disabled=false;btn.textContent='Create Account →';return;}
+    window.location.href='/chat';
+  }catch(e){error.textContent='Something went wrong. Please try again.';error.style.display='block';btn.disabled=false;btn.textContent='Create Account →';}
+}
+</script>
+</body>
+</html>
