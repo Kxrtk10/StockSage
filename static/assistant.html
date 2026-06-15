@@ -65,6 +65,7 @@ body{background:#0f1117;color:#f0f2ff;font-family:'Inter',system-ui,sans-serif;h
 <div class="topbar">
   <span class="topbar-logo">StockSage AI</span>
   <span class="topbar-tag">AI Assistant</span>
+  <button onclick="clearChat()" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);color:#8b90a7;padding:6px 14px;border-radius:8px;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;margin-right:8px" onmouseover="this.style.color='white'" onmouseout="this.style.color='#8b90a7'">Clear chat</button>
   <button onclick="logout()" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);color:#8b90a7;padding:6px 14px;border-radius:8px;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s" onmouseover="this.style.color='white'" onmouseout="this.style.color='#8b90a7'">Sign out</button>
 </div>
 
@@ -196,6 +197,18 @@ function startLearning(){
 function askTopic(topic){
   document.getElementById('chat-input').value='Explain '+topic+' and how it affects investing';
   sendMessage();
+}
+
+async function clearChat(){
+  if(!confirm('Clear all chat history? This cannot be undone.')) return;
+  try{
+    await fetch('/api/history/assistant', {method:'DELETE'});
+    document.getElementById('messages').innerHTML = '';
+    conversationHistory = [];
+    addMsg('ai', "Hey! 👋 I'm your StockSage AI Assistant. I can help you understand stocks, explain market concepts, break down news, and guide you through investing basics. Whether you're a complete beginner or an experienced investor — ask me anything! 🚀");
+  }catch(e){
+    console.log('Clear failed:', e);
+  }
 }
 addMsg('ai',"Hey! 👋 I'm your StockSage AI Assistant. I can help you understand stocks, explain market concepts, break down news, and guide you through investing basics. Whether you're a complete beginner or an experienced investor — ask me anything! 🚀");
 </script>
