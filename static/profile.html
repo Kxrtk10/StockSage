@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StockSage AI - Profile</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0f1117;color:#f0f2ff;font-family:'Inter',system-ui,sans-serif;height:100vh;overflow:hidden}
+.topbar{position:fixed;top:0;left:0;right:0;height:52px;background:#1a1d27;border-bottom:1px solid rgba(255,255,255,0.08);display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:0 24px;z-index:100}
+.topbar-logo{font-size:16px;font-weight:700;color:white;justify-self:start}
+.topbar-tag{font-size:12px;color:#5a5f75;justify-self:center}
+.topbar button{justify-self:end}
+.bottomnav{position:fixed;bottom:0;left:0;right:0;height:60px;background:#1a1d27;border-top:1px solid rgba(255,255,255,0.08);display:flex;z-index:100}
+.bottomnav a{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px;color:#5a5f75;text-decoration:none;transition:color .15s}
+.bottomnav a.active{color:#6c63ff}
+.main{position:fixed;top:52px;bottom:60px;left:0;right:0;overflow-y:auto;padding:40px;background:#0f1117;width:100%;max-width:700px;margin:0 auto}
+.eyebrow{text-align:center;font-size:11px;font-weight:600;color:#6c63ff;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
+.avatar{width:80px;height:80px;border-radius:50%;background:rgba(108,99,255,0.25);border:2px solid rgba(108,99,255,0.4);color:#8b84ff;font-size:28px;font-weight:800;display:flex;align-items:center;justify-content:center;margin:0 auto 16px}
+.name{text-align:center;font-size:32px;font-weight:800;color:white;text-shadow:0 0 60px rgba(108,99,255,0.3)}
+.email{text-align:center;font-size:14px;color:#5a5f75;margin-top:4px}
+.member{text-align:center;font-size:12px;color:#5a5f75;margin-top:8px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:28px}
+.stat-card{background:#1a1d27;border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:20px;text-align:center}
+.stat-num{font-size:28px;font-weight:800;color:white}
+.stat-label{font-size:12px;color:#5a5f75;margin-top:4px}
+.section{margin-top:24px}
+.section-label{font-size:11px;font-weight:600;color:#6c63ff;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px}
+.danger-label{color:#ef4444}
+.info-row{background:#1a1d27;border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:14px 18px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.info-label{color:#5a5f75;font-size:13px}
+.info-value{color:white;font-size:13px;font-weight:500;text-align:right;word-break:break-word}
+.quick-links{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.quick-link{display:block;background:#1a1d27;border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:14px;text-decoration:none;transition:all .15s}
+.quick-link:hover{background:rgba(108,99,255,0.08);border-color:rgba(108,99,255,0.3)}
+.quick-link-title{font-size:13px;font-weight:600;color:#c8cad4}
+.quick-link:hover .quick-link-title{color:white}
+.quick-link-desc{font-size:11px;color:#5a5f75;margin-top:3px}
+.danger-btn{width:100%;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);color:#ef4444;border-radius:10px;padding:14px;font-size:14px;font-weight:600;cursor:pointer;text-align:center;font-family:'Inter',system-ui,sans-serif}
+.success{display:none;margin-top:12px;background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);color:#22c55e;border-radius:10px;padding:12px 14px;font-size:13px}
+@media(max-width:720px){
+  .main{padding:24px 18px}
+  .stats{grid-template-columns:1fr}
+  .quick-links{grid-template-columns:1fr}
+  .info-row{flex-direction:column;align-items:flex-start}
+  .info-value{text-align:left}
+}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <span class="topbar-logo">StockSage AI</span>
+  <span class="topbar-tag">My Profile</span>
+  <button onclick="logout()" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);color:#8b90a7;padding:6px 14px;border-radius:8px;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s" onmouseover="this.style.color='white'" onmouseout="this.style.color='#8b90a7'">Sign out</button>
+</div>
+
+<div class="main">
+  <div class="eyebrow">MY PROFILE</div>
+  <div class="avatar" id="avatar">S</div>
+  <div class="name" id="profile-name">Loading...</div>
+  <div class="email" id="profile-email">loading@stocksage.ai</div>
+  <div class="member">Member since <span id="member-since">June 2025</span></div>
+
+  <div class="stats">
+    <div class="stat-card">
+      <div class="stat-num" id="messages-sent">0</div>
+      <div class="stat-label">Messages Sent</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="stocks-researched">0</div>
+      <div class="stat-label">Stocks Researched</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="days-active">0</div>
+      <div class="stat-label">Days Active</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">ACCOUNT</div>
+    <div class="info-row">
+      <div class="info-label">Full Name</div>
+      <div class="info-value" id="account-name">Loading...</div>
+    </div>
+    <div class="info-row">
+      <div class="info-label">Email</div>
+      <div class="info-value" id="account-email">Loading...</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">QUICK LINKS</div>
+    <div class="quick-links">
+      <a class="quick-link" href="/chat">
+        <div class="quick-link-title">Go to Research</div>
+        <div class="quick-link-desc">Open stock analysis and live market chat.</div>
+      </a>
+      <a class="quick-link" href="/assistant">
+        <div class="quick-link-title">Open Assistant</div>
+        <div class="quick-link-desc">Ask broader investing and market questions.</div>
+      </a>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label danger-label">DANGER ZONE</div>
+    <button class="danger-btn" onclick="clearAllHistory()">Clear all history</button>
+    <div class="success" id="success-message">Chat history cleared successfully.</div>
+  </div>
+</div>
+
+<div class="bottomnav">
+  <a href="/chat" id="nav-research">📊<span>Research</span></a>
+  <a href="/budget" id="nav-budget">💼<span>Budget</span></a>
+  <a href="/news" id="nav-news">📰<span>News</span></a>
+  <a href="/assistant" id="nav-assistant">🤖<span>Assistant</span></a>
+  <a href="/profile" id="nav-profile" class="active">👤<span>Profile</span></a>
+</div>
+
+<script>
+async function checkAuth(){
+  try{
+    const res = await fetch('/api/auth/me');
+    if(!res.ok){ window.location.href='/login'; return null; }
+    return await res.json();
+  }catch(e){ window.location.href='/login'; return null; }
+}
+
+async function logout(){
+  await fetch('/api/auth/logout', {method:'POST'});
+  window.location.href='/login';
+}
+
+function getInitials(name){
+  return (name || 'S').trim().charAt(0).toUpperCase();
+}
+
+function calculateDaysActive(){
+  return 1;
+}
+
+function formatMemberSince(createdAt){
+  const created = createdAt ? new Date(createdAt) : new Date();
+  return created.toLocaleString('en-US', {month:'long', year:'numeric'});
+}
+
+function countStocksResearched(messages){
+  const matches = new Set();
+  const stockRegex = /(reliance|infosys|hdfc|hdfc bank|tata motors|apple|aapl|tesla|tsla|nvidia|nvda|microsoft|msft|google|googl|amazon|amzn|meta|netflix|nflx|tcs|wipro)/i;
+  messages.forEach(m => {
+    if(m.role === 'user'){
+      const hit = m.message.match(stockRegex);
+      if(hit) matches.add(hit[1].toLowerCase());
+    }
+  });
+  return matches.size;
+}
+
+async function loadProfile(){
+  const meRes = await fetch('/api/auth/me');
+  const user = await meRes.json();
+  const created = new Date(user.created_at || Date.now());
+  const daysActive = Math.max(1, Math.floor((Date.now() - created.getTime()) / (1000 * 60 * 60 * 24)));
+  document.getElementById('avatar').textContent = getInitials(user.name);
+  document.getElementById('profile-name').textContent = user.name;
+  document.getElementById('profile-email').textContent = user.email;
+  document.getElementById('account-name').textContent = user.name;
+  document.getElementById('account-email').textContent = user.email;
+  document.getElementById('member-since').textContent = formatMemberSince(user.created_at);
+  document.getElementById('days-active').textContent = daysActive;
+
+  const historyRes = await fetch('/api/history/chat');
+  const historyData = await historyRes.json();
+  const messages = historyData.success ? historyData.messages : [];
+  const userMessages = messages.filter(m => m.role === 'user');
+  document.getElementById('messages-sent').textContent = userMessages.length;
+  document.getElementById('stocks-researched').textContent = countStocksResearched(messages);
+}
+
+async function clearAllHistory(){
+  if(!confirm('Clear all chat history? This cannot be undone.')) return;
+  try{
+    await fetch('/api/history/chat', {method:'DELETE'});
+    await fetch('/api/history/assistant', {method:'DELETE'});
+    document.getElementById('messages-sent').textContent = '0';
+    document.getElementById('stocks-researched').textContent = '0';
+    const success = document.getElementById('success-message');
+    success.style.display = 'block';
+    setTimeout(() => { success.style.display = 'none'; }, 2400);
+  }catch(e){
+    alert('Failed to clear history. Please try again.');
+  }
+}
+
+checkAuth().then(user => {
+  if(user){
+    loadProfile();
+  }
+});
+</script>
+</body>
+</html>

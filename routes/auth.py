@@ -77,9 +77,9 @@ async def me(request: Request):
         raise HTTPException(status_code=401, detail="Invalid token")
     conn = get_db()
     try:
-        user = conn.execute("SELECT id, name, email FROM users WHERE id = ?", (payload["user_id"],)).fetchone()
+        user = conn.execute("SELECT id, name, email, created_at FROM users WHERE id = ?", (payload["user_id"],)).fetchone()
         if not user:
             raise HTTPException(status_code=401, detail="User not found")
-        return {"id": user["id"], "name": user["name"], "email": user["email"]}
+        return {"id": user["id"], "name": user["name"], "email": user["email"], "created_at": user["created_at"]}
     finally:
         conn.close()

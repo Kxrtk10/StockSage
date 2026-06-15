@@ -44,3 +44,6 @@ async def register_page():
 @app.get("/assistant")
 async def assistant_page():
     return FileResponse(STATIC_DIR / "assistant.html")
+@app.get("/profile")
+async def profile_page():
+    return FileResponse(STATIC_DIR / "profile.html")
