@@ -70,3 +70,34 @@ async def get_stock_price(symbol: str):
     except Exception as e:
         print(f"Stock price error: {e}")
         return {"success": False, "error": str(e)}
+
+@router.get("/api/market-indices")
+async def get_market_indices():
+    try:
+        symbols = {
+            "NIFTY 50": "NIFTY50.NSE",
+            "SENSEX": "SENSEX.BSE",
+            "S&P 500": "SPX",
+            "NASDAQ": "IXIC"
+        }
+        results = {}
+        async with httpx.AsyncClient() as client:
+            for name, symbol in symbols.items():
+                url = f"https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={symbol}&apikey={AV_KEY}"
+                res = await client.get(url, timeout=10)
+                data = res.json()
+                quote = data.get("Global Quote", {})
+                if quote and quote.get("05. price"):
+                    price = float(quote.get("05. price", 0))
+                    change = float(quote.get("09. change", 0))
+                    change_pct = quote.get("10. change percent", "0%").replace("%", "")
+                    results[name] = {
+                        "price": f"{price:,.2f}",
+                        "change": f"{change:+.2f}",
+                        "change_pct": f"{float(change_pct):+.2f}%",
+                        "is_positive": change >= 0
+                    }
+        return {"success": True, "indices": results}
+    except Exception as e:
+        print(f"Indices error: {e}")
+        return {"success": False, "indices": {}}

@@ -134,6 +134,8 @@ body{background:#0f1117;color:#f0f2ff;font-family:'Inter',system-ui,sans-serif;h
 </div>
 
 <script>
+let conversationHistory = [];
+
 async function logout(){
   await fetch('/api/auth/logout', {method:'POST'});
   window.location.href='/login';
@@ -145,7 +147,32 @@ async function checkAuth(){
     return await res.json();
   }catch(e){window.location.href='/login';return null;}
 }
-checkAuth();
+
+async function saveMessage(role, text){
+  try{
+    await fetch('/api/history/save', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({role, message: text, page:'assistant'})
+    });
+  }catch(e){ console.log('Save failed:', e); }
+}
+
+async function loadHistory(){
+  try{
+    const res = await fetch('/api/history/assistant');
+    const data = await res.json();
+    if(data.success && data.messages.length > 0){
+      data.messages.forEach(m => {
+        conversationHistory.push({role: m.role==='ai'?'assistant':m.role, content: m.message});
+        if(m.role==='user'){ addMsg('user', m.message); }
+        else { addMsg('ai', formatResponse(m.message)); }
+      });
+      return true;
+    }
+    return false;
+  }catch(e){ return false; }
+}
 
 function addMsg(role,html){
   const msgs=document.getElementById('messages');
@@ -177,13 +204,17 @@ async function sendMessage(){
   const text=input.value.trim();
   if(!text)return;
   addMsg('user',text);
+  saveMessage('user', text);
+  conversationHistory.push({role:'user', content:text});
   input.value='';
   showTyping();
   try{
-    const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text})});
+    const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message: text, history: conversationHistory.slice(-10)})});
     const data=await res.json();
     hideTyping();
     addMsg('ai',formatResponse(data.response));
+    saveMessage('ai', data.response);
+    conversationHistory.push({role:'assistant', content:data.response});
   }catch(e){
     hideTyping();
     addMsg('ai','Something went wrong. Please try again.');
@@ -212,7 +243,13 @@ async function clearChat(){
     console.log('Clear failed:', e);
   }
 }
-addMsg('ai',"Hey! 👋 I'm your StockSage AI Assistant. I can help you understand stocks, explain market concepts, break down news, and guide you through investing basics. Whether you're a complete beginner or an experienced investor — ask me anything! 🚀");
+checkAuth().then(() => {
+  loadHistory().then(hasHistory => {
+    if(!hasHistory){
+      addMsg('ai', "Hey! 👋 I'm your StockSage AI Assistant. I can help you understand stocks, explain market concepts, break down news, and guide you through investing basics. Whether you're a complete beginner or an experienced investor — ask me anything! 🚀");
+    }
+  });
+});
 </script>
 </body>
 </html>

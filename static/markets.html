@@ -189,10 +189,37 @@ function renderIndices(){
       <div class="index-value">${index.value}</div>
       <div class="index-change ${index.positive ? 'positive' : 'negative'}">${index.change} (${index.pct})</div>
       <div class="sparkline">
-        <div class="sparkline-fill" style="width:${index.positive ? '78%' : '36%'};background:${index.positive ? '#22c55e' : '#ef4444'}"></div>
+        <div class="sparkline-fill index-bar" style="width:${index.positive ? '78%' : '36%'};background:${index.positive ? '#22c55e' : '#ef4444'}"></div>
       </div>
     </div>
   `).join('');
+}
+
+async function loadIndices(){
+  try{
+    const res = await fetch('/api/market-indices');
+    const data = await res.json();
+    if(data.success && Object.keys(data.indices).length > 0){
+      const indices = data.indices;
+      const cards = document.querySelectorAll('.index-card');
+      const names = ['NIFTY 50', 'SENSEX', 'S&P 500', 'NASDAQ'];
+      names.forEach((name, i) => {
+        if(indices[name] && cards[i]){
+          const valueEl = cards[i].querySelector('.index-value');
+          const changeEl = cards[i].querySelector('.index-change');
+          const barEl = cards[i].querySelector('.index-bar');
+          if(valueEl) valueEl.textContent = indices[name].price;
+          if(changeEl){
+            changeEl.textContent = indices[name].change_pct;
+            changeEl.style.color = indices[name].is_positive ? '#22c55e' : '#ef4444';
+          }
+          if(barEl) barEl.style.background = indices[name].is_positive ? '#22c55e' : '#ef4444';
+        }
+      });
+    }
+  }catch(e){
+    console.log('Indices load failed:', e);
+  }
 }
 
 function openStock(stock){
@@ -259,6 +286,7 @@ function updateTimestamp(){
 checkAuth().then(user => {
   if(!user) return;
   renderIndices();
+  loadIndices();
   renderSentiment();
   switchMarket('india');
   updateTimestamp();
