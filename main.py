@@ -49,3 +49,9 @@ async def assistant_page():
 @app.get("/profile")
 async def profile_page():
     return FileResponse(STATIC_DIR / "profile.html")
+@app.get("/markets")
+async def markets_page():
+    return FileResponse(STATIC_DIR / "markets.html")
+@app.get("/stock-detail")
+async def stock_detail_page():
+    return FileResponse(STATIC_DIR / "stock-detail.html")

@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StockSage AI - Stock Detail</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0f1117;color:#f0f2ff;font-family:'Inter',system-ui,sans-serif;height:100vh;overflow:hidden}
+.topbar{position:fixed;top:0;left:0;right:0;height:52px;background:#1a1d27;border-bottom:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:space-between;padding:0 24px;z-index:100}
+.topbar-logo{font-size:16px;font-weight:700;color:white}
+.topbar-tag{font-size:12px;color:#5a5f75}
+.bottomnav{position:fixed;bottom:0;left:0;right:0;height:60px;background:#1a1d27;border-top:1px solid rgba(255,255,255,0.08);display:flex;z-index:100}
+.bottomnav a{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px;color:#5a5f75;text-decoration:none;transition:color .15s}
+.bottomnav a.active{color:#6c63ff}
+.main{position:fixed;top:52px;bottom:60px;left:0;right:0;overflow-y:auto;background:#0f1117}
+.layout{display:grid;grid-template-columns:75% 25%;gap:0;height:100%;min-height:100%}
+.left{padding:20px 16px 20px 24px;display:flex;flex-direction:column;min-width:0}
+.back-btn{font-size:13px;color:#5a5f75;background:none;border:none;cursor:pointer;margin-bottom:16px;padding:0;text-align:left}
+.stock-name{font-size:26px;font-weight:800;color:white}
+.stock-meta{font-size:13px;color:#5a5f75;margin-top:4px}
+.price-row{display:flex;align-items:baseline;gap:12px;margin-top:8px;margin-bottom:16px;flex-wrap:wrap}
+.stock-price{font-size:32px;font-weight:800;color:white}
+.stock-change{font-size:16px;font-weight:600}
+.timeframes{display:flex;gap:8px;flex-wrap:wrap}
+.tf-btn{padding:6px 14px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:#5a5f75;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif}
+.tf-btn.active{background:#6c63ff;border-color:#6c63ff;color:white}
+#tv-chart{flex:1;border-radius:12px;overflow:hidden;margin-top:12px;min-height:520px;background:#121520;border:1px solid rgba(255,255,255,0.04)}
+.right{width:100%;border-left:1px solid rgba(255,255,255,0.06);padding:20px 24px 20px 20px;overflow-y:auto;background:#0f1117;display:flex;flex-direction:column}
+.analysis-label{font-size:11px;font-weight:600;color:#6c63ff;letter-spacing:2px;text-transform:uppercase;margin-bottom:16px}
+#analysis-content{font-size:14px;color:#e8eaf0;line-height:1.8}
+#analysis-content strong{color:white}
+.typing{display:flex;gap:6px;align-items:center}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#5a5f75;animation:bounce 1.2s infinite}
+.dot:nth-child(2){animation-delay:.2s}
+.dot:nth-child(3){animation-delay:.4s}
+.stats-wrap{margin-top:28px}
+.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.stat-card{background:#1a1d27;border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:12px}
+.stat-label{font-size:11px;color:#5a5f75}
+.stat-value{font-size:15px;font-weight:700;color:white;margin-top:4px}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+@media(max-width:960px){
+  .layout{grid-template-columns:1fr;height:auto}
+  .right{border-left:none;border-top:1px solid rgba(255,255,255,0.06)}
+  #tv-chart{min-height:320px}
+}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <span class="topbar-logo">StockSage AI</span>
+  <span class="topbar-tag">Stock Detail</span>
+  <button onclick="logout()" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);color:#8b90a7;padding:6px 14px;border-radius:8px;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s" onmouseover="this.style.color='white'" onmouseout="this.style.color='#8b90a7'">Sign out</button>
+</div>
+
+<div class="main">
+  <div class="layout">
+    <div class="left">
+      <button class="back-btn" onclick="window.history.back()">← Markets</button>
+      <div id="stock-name" class="stock-name">Reliance Industries</div>
+      <div id="stock-meta" class="stock-meta">NSE</div>
+      <div class="price-row">
+        <div id="stock-price" class="stock-price">Loading...</div>
+        <div id="stock-change" class="stock-change" style="color:#5a5f75">Loading...</div>
+      </div>
+      <div class="timeframes">
+        <button class="tf-btn" data-interval="5">5M</button>
+        <button class="tf-btn" data-interval="15">15M</button>
+        <button class="tf-btn" data-interval="30">30M</button>
+        <button class="tf-btn" data-interval="60">1H</button>
+        <button class="tf-btn active" data-interval="D">1D</button>
+        <button class="tf-btn" data-interval="W">1W</button>
+        <button class="tf-btn" data-interval="M">1M</button>
+      </div>
+      <div id="tv-chart"></div>
+    </div>
+
+    <div class="right">
+      <div class="analysis-label">AI ANALYSIS</div>
+      <div id="analysis-content">
+        <div class="typing"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+      </div>
+
+      <div class="stats-wrap">
+        <div class="analysis-label" style="margin-bottom:12px">Key Stats</div>
+        <div id="key-stats" class="stats-grid">
+          <div class="stat-card"><div class="stat-label">Market Cap</div><div class="stat-value">Loading...</div></div>
+          <div class="stat-card"><div class="stat-label">P/E Ratio</div><div class="stat-value">Loading...</div></div>
+          <div class="stat-card"><div class="stat-label">52W High</div><div class="stat-value">Loading...</div></div>
+          <div class="stat-card"><div class="stat-label">52W Low</div><div class="stat-value">Loading...</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="bottomnav">
+  <a href="/chat">📊<span>Research</span></a>
+  <a href="/budget">💼<span>Budget</span></a>
+  <a href="/news">📰<span>News</span></a>
+  <a href="/markets" class="active">📈<span>Markets</span></a>
+  <a href="/assistant">🤖<span>Assistant</span></a>
+  <a href="/profile">👤<span>Profile</span></a>
+</div>
+
+<script>
+async function checkAuth(){
+  try{
+    const res = await fetch('/api/auth/me');
+    if(!res.ok){ window.location.href='/login'; return null; }
+    return await res.json();
+  }catch(e){ window.location.href='/login'; return null; }
+}
+
+async function logout(){
+  await fetch('/api/auth/logout', {method:'POST'});
+  window.location.href='/login';
+}
+
+function loadTVChart(symbol, exchange, interval){
+  const container = document.getElementById('tv-chart');
+  container.innerHTML = '';
+  const tvSymbol = exchange === 'NSE' || exchange === 'BSE' ? `BSE:${symbol}` : `NASDAQ:${symbol}`;
+  const div = document.createElement('div');
+  div.className = 'tradingview-widget-container';
+  div.style.height = '100%';
+  div.style.width = '100%';
+  const widgetDiv = document.createElement('div');
+  widgetDiv.id = 'tradingview_widget';
+  widgetDiv.style.height = '100%';
+  div.appendChild(widgetDiv);
+  container.appendChild(div);
+  const oldScripts = document.querySelectorAll('script[data-tv-script="true"]');
+  oldScripts.forEach(s => s.remove());
+  const script = document.createElement('script');
+  script.src = 'https://s3.tradingview.com/tv.js';
+  script.dataset.tvScript = 'true';
+  script.onload = function(){
+    new TradingView.widget({
+      autosize: true,
+      symbol: tvSymbol,
+      interval: interval,
+      timezone: "Asia/Kolkata",
+      theme: "dark",
+      style: "1",
+      locale: "en",
+      toolbar_bg: "#1a1d27",
+      enable_publishing: false,
+      hide_top_toolbar: false,
+      hide_legend: false,
+      hide_side_toolbar: false,
+      allow_symbol_change: true,
+      studies: ["RSI@tv-studieslibrary", "MACD@tv-studieslibrary"],
+      show_popup_button: true,
+      popup_width: "1000",
+      popup_height: "650",
+      save_image: false,
+      container_id: "tradingview_widget",
+      backgroundColor: "#0f1117",
+      gridColor: "rgba(255,255,255,0.04)"
+    });
+  };
+  document.head.appendChild(script);
+}
+
+function formatResponse(text){
+  return text
+    .replace(/^#{1,3}\s+/gm,'')
+    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+    .replace(/→/g,'<br>→')
+    .replace(/\n/g,'<br>');
+}
+
+async function fetchAnalysis(symbol, name){
+  const analysis = document.getElementById('analysis-content');
+  analysis.innerHTML = '<div class="typing"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>';
+  try{
+    const exchange = document.getElementById('stock-meta').textContent;
+    const res = await fetch('/api/chat', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        message: `Analyse ${name} (${symbol}) stock listed on ${exchange}. Structure your response exactly like this:
+
+📌 ${name} (${symbol}) — ${exchange}
+
+💼 What They Do
+One to two sentences about the company in simple language.
+
+💰 Current Price Range
+Approximate price range. Always mention: This is indicative only — check live prices before investing.
+
+📊 Chart Pattern Analysis
+Based on typical price behaviour for this stock describe the current trend uptrend downtrend or sideways, key support and resistance levels to watch, and any notable chart patterns that traders should be aware of. Explain what these mean for a beginner investor.
+
+✅ Why It Could Be a Good Investment (Pros)
+→ Pro 1 — one sentence
+→ Pro 2 — one sentence
+→ Pro 3 — one sentence
+
+⚠️ Risks to Watch Out For
+→ Risk 1 — one sentence
+→ Risk 2 — one sentence
+→ Risk 3 — one sentence
+
+🏆 Verdict: BUY / HOLD / WAIT
+One clear sentence of reasoning.
+
+📝 Quick Summary
+Two to three sentences in plain English that anyone can understand.
+
+⚠️ Disclaimer: This is not financial advice. Always do your own research before investing.`
+      })
+    });
+    const data = await res.json();
+    analysis.innerHTML = formatResponse(data.response || 'No analysis available right now.');
+  }catch(e){
+    analysis.innerHTML = 'Something went wrong while loading analysis.';
+  }
+}
+
+async function loadStockPrice(symbol){
+  try{
+    const res = await fetch('/api/stock-price/' + encodeURIComponent(symbol.toLowerCase()));
+    const data = await res.json();
+    if(data.success){
+      document.getElementById('stock-price').textContent = data.price;
+      const changeEl = document.getElementById('stock-change');
+      changeEl.textContent = data.change_pct;
+      changeEl.style.color = data.is_positive ? '#22c55e' : '#ef4444';
+    } else {
+      document.getElementById('stock-price').textContent = 'See live price on exchange';
+      document.getElementById('stock-change').textContent = '';
+    }
+  }catch(e){
+    document.getElementById('stock-price').textContent = 'See live price on exchange';
+  }
+}
+
+function setTimeframeHandlers(symbol, exchange){
+  document.querySelectorAll('.tf-btn').forEach(btn => {
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      loadTVChart(symbol, exchange, this.dataset.interval);
+    });
+  });
+}
+
+checkAuth().then(user => {
+  if(!user) return;
+  const params = new URLSearchParams(window.location.search);
+  const symbol = params.get('symbol') || 'RELIANCE';
+  const exchange = params.get('exchange') || 'NSE';
+  const name = params.get('name') || 'Reliance Industries';
+
+  document.getElementById('stock-name').textContent = name;
+  document.getElementById('stock-meta').textContent = exchange;
+  document.getElementById('stock-price').textContent = 'Loading...';
+  document.getElementById('stock-change').textContent = 'Loading...';
+
+  loadTVChart(symbol, exchange, 'D');
+  setTimeframeHandlers(symbol, exchange);
+  loadStockPrice(symbol);
+  fetchAnalysis(symbol, name);
+});
+</script>
+</body>
+</html>
